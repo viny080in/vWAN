@@ -1,0 +1,117 @@
+name: phase-02-fundamentals
+services:
+  branch1-pc:
+    container_name: branch1-pc
+    cap_add:
+      - NET_ADMIN
+    command:
+      - sh
+      - -c
+      - ip route replace default via 10.1.1.1 && sleep infinity
+    networks:
+      branch1:
+        ipv4_address: 10.1.1.10
+    build:
+      context: /home/pitu/projects/vwan-local-labs/phase-02-fundamentals
+      dockerfile: Dockerfile
+  branch2-pc:
+    container_name: branch2-pc
+    cap_add:
+      - NET_ADMIN
+    command:
+      - sh
+      - -c
+      - ip route replace default via 10.2.1.1 && sleep infinity
+    networks:
+      branch2:
+        ipv4_address: 10.2.1.10
+    build:
+      context: /home/pitu/projects/vwan-local-labs/phase-02-fundamentals
+      dockerfile: Dockerfile
+  router1:
+    container_name: router1
+    command:
+      - sh
+      - -c
+      - |-
+        ip route replace 10.2.1.0/24 via 10.0.1.2 &&
+               sleep infinity
+    networks:
+      branch1:
+        ipv4_address: 10.1.1.1
+      transit1:
+        ipv4_address: 10.0.1.1
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    build:
+      context: /home/pitu/projects/vwan-local-labs/phase-02-fundamentals
+      dockerfile: Dockerfile
+  router2:
+    container_name: router2
+    command:
+      - sh
+      - -c
+      - |-
+        ip route replace 10.1.1.0/24 via 10.0.2.1 &&
+               sleep infinity
+    networks:
+      branch2:
+        ipv4_address: 10.2.1.1
+      transit2:
+        ipv4_address: 10.0.2.2
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    build:
+      context: /home/pitu/projects/vwan-local-labs/phase-02-fundamentals
+      dockerfile: Dockerfile
+  vwan-hub1:
+    container_name: vwan-hub1
+    command:
+      - sh
+      - -c
+      - |-
+        ip route replace 10.1.1.0/24 via 10.0.1.1 &&
+               ip route replace 10.2.1.0/24 via 10.0.2.2 &&
+               sleep infinity
+    networks:
+      transit1:
+        ipv4_address: 10.0.1.2
+      transit2:
+        ipv4_address: 10.0.2.1
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    build:
+      context: /home/pitu/projects/vwan-local-labs/phase-02-fundamentals
+      dockerfile: Dockerfile
+networks:
+  branch1:
+    name: phase-02-fundamentals_branch1
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.1.1.0/24
+          gateway: 10.1.1.254
+  branch2:
+    name: phase-02-fundamentals_branch2
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.2.1.0/24
+          gateway: 10.2.1.254
+  transit1:
+    name: phase-02-fundamentals_transit1
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.1.0/24
+          gateway: 10.0.1.254
+  transit2:
+    name: phase-02-fundamentals_transit2
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.2.0/24
+          gateway: 10.0.2.254

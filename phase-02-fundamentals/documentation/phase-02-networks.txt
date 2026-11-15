@@ -1,0 +1,12 @@
+NETWORK ID     NAME                              DRIVER    SCOPE
+eff797b95b8a   azure-security-projects_default   bridge    local
+46dffeb98b45   azure-terraform-webapp_default    bridge    local
+6d7e9d520368   bridge                            bridge    local
+1162abd0edde   host                              host      local
+c81f28eb78da   n8n-self-hosted_default           bridge    local
+3d525b2ac0bf   naturewebapp_default              bridge    local
+46eaba67f9d9   none                              null      local
+ad6d5e9180c9   phase-02-fundamentals_branch1     bridge    local
+fbf57b13d7f2   phase-02-fundamentals_branch2     bridge    local
+9ed19b29cb39   phase-02-fundamentals_transit1    bridge    local
+03088cce8908   phase-02-fundamentals_transit2    bridge    local

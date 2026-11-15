@@ -1,0 +1,89 @@
+services:
+  branch1-pc:
+    build: .
+    container_name: branch1-pc
+    command:
+    - sh
+    - -c
+    - ip route replace default via 10.1.1.1 && sleep infinity
+    networks:
+      branch1:
+        ipv4_address: 10.1.1.10
+    cap_add:
+    - NET_ADMIN
+  router1:
+    build: .
+    container_name: router1
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: '1'
+    command: "sh -c \"ip route replace 10.2.1.0/24 via 10.0.1.2 &&\n       sleep infinity\"\
+      \n"
+    networks:
+      branch1:
+        ipv4_address: 10.1.1.1
+      transit1:
+        ipv4_address: 10.0.1.1
+  vwan-hub1:
+    build: .
+    container_name: vwan-hub1
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: '1'
+    command: "sh -c \"ip route replace 10.1.1.0/24 via 10.0.1.1 &&\n       ip route\
+      \ replace 10.2.1.0/24 via 10.0.2.2 &&\n       sleep infinity\"\n"
+    networks:
+      transit1:
+        ipv4_address: 10.0.1.2
+      transit2:
+        ipv4_address: 10.0.2.1
+  router2:
+    build: .
+    container_name: router2
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: '1'
+    command: "sh -c \"ip route replace 10.1.1.0/24 via 10.0.2.1 &&\n       sleep infinity\"\
+      \n"
+    networks:
+      transit2:
+        ipv4_address: 10.0.2.2
+      branch2:
+        ipv4_address: 10.2.1.1
+  branch2-pc:
+    build: .
+    container_name: branch2-pc
+    command:
+    - sh
+    - -c
+    - ip route replace default via 10.2.1.1 && sleep infinity
+    networks:
+      branch2:
+        ipv4_address: 10.2.1.10
+    cap_add:
+    - NET_ADMIN
+networks:
+  branch1:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 10.1.1.0/24
+        gateway: 10.1.1.254
+  transit1:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 10.0.1.0/24
+        gateway: 10.0.1.254
+  transit2:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 10.0.2.0/24
+        gateway: 10.0.2.254
+  branch2:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 10.2.1.0/24
+        gateway: 10.2.1.254
